@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
+import time
 import pygame
 import pygame.camera
-import time
 from telegram import ChatAction, ReplyKeyboardMarkup, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import configparser
 
 class Photographer():
 
-    def __init__(self, device, resolution):
+    def __init__(self, device, resolution, pic):
         self.device = device
         self.resolution = resolution
+        self.pic = pic
 
     def start(self, bot, update):
         custom_keyboard = [["/now"]]
@@ -25,7 +26,7 @@ class Photographer():
     def send_photo(self, bot, update):
         bot.sendChatAction(chat_id=update.message.chat_id, action=ChatAction.UPLOAD_PHOTO)
         self.make_shot()
-        photo = open('actual.jpg', 'rb')
+        photo = open(self.pic, 'rb')
         bot.sendPhoto(chat_id=update.message.chat_id, photo=photo)
 
     def make_shot(self):
@@ -33,12 +34,14 @@ class Photographer():
         cam = pygame.camera.Camera(self.device, 
                                    tuple(map(int, self.resolution.split('x'))))
         cam.start()
+        time.sleep(3) # need to play with it
         img = cam.get_image()
-        pygame.image.save(img,"actual.jpg")
+        pygame.image.save(img, self.pic)
+        cam.stop()
 
 
 def read_config():
-    
+
     config = configparser.ConfigParser()
     config.read('bullfinch_igor_bot.cfg')
 
@@ -54,7 +57,7 @@ def main():
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(token)
 
-    photographer = Photographer(device, resolution)
+    photographer = Photographer(device, resolution, "/tmp/igor.jpg")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
