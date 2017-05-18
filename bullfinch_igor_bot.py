@@ -15,6 +15,31 @@ class Photographer():
         self.resolution = resolution
         self.pic = pic
         self.photo_count = 0
+        self.lastday = ""
+
+    def recalculate_photo_count(self):
+
+        current_time = time.localtime()
+        today = current_time.tm_mday
+
+        if self.lastday:
+
+            if today > self.lastday:
+                print("%s: now is a new day, \
+                       resetting the count..." % time.asctime())
+                self.lastday = today
+                self.photo_count = 0
+
+            else:
+                print("%s: now is not a new day" % time.asctime())
+                self.photo_count += 1
+
+        else:
+            print("%s: script started, so lastday is today" % time.asctime())
+            self.lastday = today
+            self.photo_count += 1
+
+        print(self.photo_count)
 
     def start(self, bot, update):
 
@@ -28,7 +53,7 @@ class Photographer():
 
     def send_photo(self, bot, update):
 
-        def make_shot(self):
+        def make_shot():
             pygame.camera.init()
             cam = pygame.camera.Camera(self.device,
                                        tuple(map(int,
@@ -41,28 +66,18 @@ class Photographer():
 
         bot.sendChatAction(chat_id=update.message.chat_id,
                            action=ChatAction.UPLOAD_PHOTO)
+
         make_shot()
         photo = open(self.pic, 'rb')
         bot.sendPhoto(chat_id=update.message.chat_id, photo=photo)
-        self.photo_count += 1
+        self.recalculate_photo_count()
 
     def send_statistic(self, bot, update):
 
-        def new_day():
-            current_time = time.localtime()
-            today = current_time.tm_mday
-            hour = current_time.tm_hour
-            if 'lastday' in locals():
-                if today > lastday:
-                    lastday = today
-                    return True
-                else:
-                    return False
-            else:
-                lastday = today
-                return False
-
-        bot.send_message(chat_id=update.message.chat_id, text=self.photo_count)
+        message = "За сегодняшний день Игоря хотели увидеть " \
+                  "столько раз: %d" % self.photo_count
+        bot.send_message(chat_id=update.message.chat_id, text="За сегодняшний день Игоря хотели увидеть " \
+                                                              "столько раз: %d" % self.photo_count)
 
 
 def read_config(config_file):
@@ -83,7 +98,7 @@ def main():
     device = config['device']
     resolution = config['resolution']
 
-    pic = '/tmp/igor.jpg'
+    pic = '/tmp/igor/igor.jpg'
 
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(token)
