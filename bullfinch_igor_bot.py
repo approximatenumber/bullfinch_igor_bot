@@ -62,7 +62,7 @@ class Photographer():
                 lastday = today
                 return False
 
-        bot.send_message(chat_id=update.message.chat_id, message=self.photo_count)
+        bot.send_message(chat_id=update.message.chat_id, text=self.photo_count)
 
 
 def read_config(config_file):
